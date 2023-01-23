@@ -14,6 +14,8 @@ export class HeroService {
 
   constructor(private messageService: MessageService, private http: HttpClient) { }
 
+  private heroesUrl = 'api/heroes';  // URL to web api
+
   /** GET heroes from the server */
   getHeroes(): Observable<Hero[]> {
     this.messageService.add('HeroService: fetched heroes');
@@ -24,18 +26,17 @@ export class HeroService {
       );
   }
 
+  /** GET hero by id. Will 404 if id not found */
   getHero(id: number): Observable<Hero> {
-    // For now, assuming that a hero with the specified `id` always exists.
-    // Error handling will be added later
-    const hero = HEROES.find(h => h.id === id)!;
+    const url = `${this.heroesUrl}/${id}`;
     this.messageService.add(`HeroService: fetched hero id=${id}`);
-    return of(hero);
+    return this.http.get<Hero>(url).pipe(
+      tap(_ => this.log(`fetched hero id=${id}`)),
+      catchError(this.handleError<Hero>(`getHero id=${id}`))
+    );
   }
 
-  private heroesUrl = 'api/heroes';  // URL to web api
-
-
-
+  
 
   /**
    * Handle Http operation that failed.
